@@ -7,40 +7,76 @@ import EditorToolbar, { formats, modules } from "./Toolbar";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import rehypeHighlight from "rehype-highlight";
+import { Toaster, toast } from "sonner";
 
 function App() {
-  const [state, setState] = useState({ value: "<h1>Hello</h1>" });
-  const handleChange = (content) => {
-    setState({ value: content });
-  };
+    const [value, setValue] = useState("");
+    const [text, setText] = useState("");
+    const [isModeSource, setIsModeSource] = useState(true);
 
-  return (
-    <div>
-      <h1>Mark Down And Editor</h1>
-      <EditorToolbar />
-      <ReactQuill
-        theme="snow"
-        className="editor"
-        bounds={"#editor"}
-        value={state.value}
-        onChange={handleChange}
-        placeholder={"Write something awesome..."}
-        modules={modules}
-        formats={formats}
-      />
+    const handleChange = (content, delta, source, editor) => {
+        const text = editor.getText();
+        setText(text);
+        setValue(content);
+    };
 
-      {/* <ReactQuill theme="bubble" readOnly value={state.value} /> */}
+    const handleCopyClipboard = () => {
+        navigator.clipboard.writeText(isModeSource ? value : text);
+        toast.success("Copied to clipboard");
+    };
 
-      {/* <div className="" style={{ padding: 0 }}> */}
-      <ReactMarkdown
-        className="ql-editor"
-        rehypePlugins={[rehypeRaw, rehypeHighlight]}
-      >
-        {state.value}
-      </ReactMarkdown>
-      {/* </div> */}
-    </div>
-  );
+    return (
+        <div>
+            <Toaster position="top-right" richColors />
+
+            <h1>Mark Down And Editor</h1>
+
+            <EditorToolbar />
+
+            <ReactQuill
+                theme="snow"
+                className="editor"
+                bounds={"#editor"}
+                value={value}
+                onChange={handleChange}
+                placeholder={"Write something awesome..."}
+                modules={modules}
+                formats={formats}
+            />
+
+            <div className="mt-2">
+                <h2>Output</h2>
+
+                <button className="button-success mb-1" onClick={handleCopyClipboard}>
+                    Copy
+                </button>
+
+                <button
+                    className="button-primary mb-1 ml-1"
+                    onClick={() => setIsModeSource(!isModeSource)}
+                >
+                    {isModeSource ? "Show text" : "Show source code"}
+                </button>
+
+                {isModeSource ? (
+                    <textarea
+                        name=""
+                        className="ql-editor custom-textarea"
+                        id=""
+                        value={value}
+                        readOnly
+                    />
+                ) : (
+                    <ReactMarkdown
+                        className="ql-editor custom-textarea"
+                        rehypePlugins={[rehypeRaw, rehypeHighlight]}
+                    >
+                        {value}
+                    </ReactMarkdown>
+                )}
+            </div>
+        </div>
+    );
 }
 
 export default App;
